@@ -1,6 +1,5 @@
-nginx
-jinjin
-jinjin
-nginx
-apache
-mysql
+iiii
+jjjjj
+ttttt
+yyyyy
+sssss
