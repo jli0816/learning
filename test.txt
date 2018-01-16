@@ -1,5 +1,7 @@
 mairadb`
 nginx
+jinjin
+jinjin
 nginx
 apache
 mysql
