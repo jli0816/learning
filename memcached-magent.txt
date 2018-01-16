@@ -1,0 +1,101 @@
+
+memcached安装:
+tar zxf libevent-2.0.22-stable.tar.gz 
+cd libevent-2.0.22-stable
+./configure --prefix=/usr/ && make && make install
+cd ..
+tar zxf memcached-1.4.33.tar.gz 
+cd memcached-1.4.33
+./configure --prefix=/usr/local/memcache --with-libevent=/usr
+make && make install
+ln -s /usr/local/memcache/bin/* /usr/local/bin
+
+
+memcached -d -m 1024 -u root -l 192.168.5.75 -p 11211
+
+
+
+
+
+Magent:
+tar zxf libevent-2.0.22-stable.tar.gz 
+cd libevent-2.0.22-stable
+./configure --prefix=/usr/
+make && make install
+mkdir /usr/magent
+cd ..
+tar zxf magent-0.6.tar.gz 
+cd magent
+tar zxf magent-0.6.tar.gz -C /usr/magent/
+cd /usr/magent/
+vim ketama.h
+
+#ifndef SSIZE_MAX
+#define SSIZE_MAX 32767
+#endif
+
+ln -s /usr/lib64/libm.so /usr/lib64/libm.a
+ln -s /usr/lib64/libevent-1.4.so.2 /usr/lib64/libevent.a
+sed 's#LIBS = -levent#LIBS = -levent -lm#g' Makefile 
+make 
+cp magent /usr/bin/
+
+yum install kernel-devel openssl-devel popt-devel
+tar zxf keepalived-1.2.20.tar.gz 
+cd keepalived-1.2.20
+./configure --prefix=/ --with-kernel-dir=/usr/src/kernels/2.6.32-696.el6.x86_64/
+make && make install
+
+chkconfig --add keepalived
+hkconfig keepalived on
+service iptables stop
+chkconfig iptables off
+vim /etc/keepalived/keepalived.conf 
+service keepalived restart
+   
+cat /etc/keepalived/keepalived.conf 
+! Configuration File for keepalived
+
+global_defs {
+   router_id LVS_DEVEL_R1
+}
+
+vrrp_instance VI_1 {
+    state MASTER
+    interface eth0
+    virtual_router_id 51
+    priority 100
+    advert_int 1
+    authentication {
+        auth_type PASS
+        auth_pass 1111
+    }
+    virtual_ipaddress {
+        192.168.5.100
+    }
+}
+
+
+
+! Configuration File for keepalived
+
+global_defs {
+   router_id LVS_DEVEL_R2
+}
+
+vrrp_instance VI_1 {
+    state BACKUP
+    interface eth0
+    virtual_router_id 51
+    priority 99
+    advert_int 1
+    authentication {
+        auth_type PASS
+        auth_pass 1111
+    }
+    virtual_ipaddress {
+        192.168.5.100
+    }
+}
+
+magent -u root -n 51200 -l 192.168.5.100 -p 12000 -s 192.168.5.75:11211 -b 192.168.5.76:11211
